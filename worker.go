@@ -101,7 +101,7 @@ func (w *worker) pruneDeadWorkers(c *redis.Client) {
 		return
 	}
 
-	hearbeatExpiredWorkers := make(map[string]struct{})
+	heartbeatExpiredWorkers := make(map[string]struct{})
 	for k, v := range heartbeatWorkers {
 		if v == "" {
 			continue
@@ -114,13 +114,13 @@ func (w *worker) pruneDeadWorkers(c *redis.Client) {
 		}
 
 		if time.Since(t) > pruneInterval {
-			hearbeatExpiredWorkers[k] = struct{}{}
+			heartbeatExpiredWorkers[k] = struct{}{}
 		}
 	}
 
 	// If a worker is on the expired list kill it
 	for _, w := range workers {
-		if _, ok := hearbeatExpiredWorkers[w]; ok {
+		if _, ok := heartbeatExpiredWorkers[w]; ok {
 			logger.Infof("Pruning dead worker %q", w)
 
 			parts := strings.Split(w, ":")
@@ -142,7 +142,7 @@ func (w *worker) pruneDeadWorkers(c *redis.Client) {
 				var work = work{}
 				err = json.Unmarshal([]byte(works), &work)
 				if err != nil {
-					_ = logger.Criticalf("Error unmarshaling worker job: %v", err)
+					_ = logger.Criticalf("Error unmarshalling worker job: %v", err)
 					return
 				}
 
