@@ -40,18 +40,18 @@ jobs:
       - name: Test
         run: go test -v .
 
-  imports:
-    name: Imports
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: check
-        uses: grandcolline/golang-github-actions@v1.1.0
-        with:
-          run: imports
-          token: ${{ secrets.GITHUB_TOKEN }}
-
   ## Checks to be enabled in the future:
+
+  # imports:
+  #   name: Imports
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@master
+  #     - name: check
+  #       uses: grandcolline/golang-github-actions@v1.1.0
+  #       with:
+  #         run: imports
+  #         token: ${{ secrets.GITHUB_TOKEN }}
 
   # errcheck:
   #   name: Errcheck
