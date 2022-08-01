@@ -135,6 +135,7 @@ func init() {
 		URI:            "redis://localhost:6379/",
 		Connections:    100,
 		// note that -queues flag is still required!
+		// the setting takes precedence though.
 		QueuesString:   "myqueue,delimited,queues",
 		UseNumber:      true,
 		ExitOnComplete: false,
