@@ -137,7 +137,6 @@ func init() {
 		// note that -queues flag is still required!
 		// the setting takes precedence though.
 		QueuesString:   "myqueue,delimited,queues",
-		UseNumber:      true,
 		ExitOnComplete: false,
 		Concurrency:    2,
 		Namespace:      "resque:",
