@@ -134,6 +134,7 @@ func init() {
 	settings := goworker.WorkerSettings{
 		URI:            "redis://localhost:6379/",
 		Connections:    100,
+		// note that -queues flag is still required!
 		QueuesString:   "myqueue,delimited,queues",
 		UseNumber:      true,
 		ExitOnComplete: false,
