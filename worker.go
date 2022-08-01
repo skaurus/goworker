@@ -52,7 +52,7 @@ func (w *worker) start(c *redis.Client, job *Job) error {
 		return err
 	}
 
-	err = c.Set(context.Background(), fmt.Sprintf("%sworker:%s", workerSettings.Namespace, w), buffer, 0).Err()
+	err = c.Set(context.Background(), fmt.Sprintf("%sworker:%s", workerSettings.Namespace, w.process), buffer, 0).Err()
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (w *worker) pruneDeadWorkers(c *redis.Client) {
 
 			works, err := c.Get(context.Background(), fmt.Sprintf("%sworker:%s", workerSettings.Namespace, wp.String())).Result()
 			if err != nil {
-				_ = logger.Criticalf("Error on getting worker work for pruning: %v", err)
+				_ = logger.Criticalf("Error on getting worker for pruning: %v", err)
 				return
 			}
 			if works != "" {
