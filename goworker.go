@@ -42,8 +42,11 @@ type WorkerSettings struct {
 }
 
 func SetSettings(settings WorkerSettings) {
-	// force the flags to be parsed first before setting the configs.
-	_ = Init()
+	// force the flags to be parsed first before setting the configs, so
+	// they won't overwrite the settings
+	if err := flags(); err != nil {
+		panic(fmt.Errorf("can't SetSettings because of %w", err))
+	}
 	workerSettings = settings
 }
 
