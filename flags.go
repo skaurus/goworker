@@ -125,7 +125,7 @@ func init() {
 
 	flag.BoolVar(&workerSettings.ExitOnComplete, "exit-on-complete", false, "exit when the queue is empty")
 
-	flag.BoolVar(&workerSettings.UseNumber, "use-number", false, "use json.Number instead of float64 when decoding numbers in JSON. will default to true soon")
+	flag.BoolVar(&workerSettings.UseNumber, "use-number", true, "use json.Number instead of float64 when decoding numbers in JSON")
 
 	flag.BoolVar(&workerSettings.SkipTLSVerify, "insecure-tls", false, "skip TLS validation")
 }
@@ -141,13 +141,6 @@ func flags() error {
 		return err
 	}
 	workerSettings.IsStrict = strings.IndexRune(workerSettings.QueuesString, '=') == -1
-
-	if !workerSettings.UseNumber {
-		_ = logger.Warn("== DEPRECATION WARNING ==")
-		_ = logger.Warn("  Currently, encoding/json decodes numbers as float64.")
-		_ = logger.Warn("  This can cause numbers to lose precision as they are read from the Resque queue.")
-		_ = logger.Warn("  Set the -use-number flag to use json.Number when decoding numbers and remove this warning.")
-	}
 
 	return nil
 }
