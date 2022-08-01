@@ -52,7 +52,7 @@ func (w *worker) start(c *redis.Client, job *Job) error {
 		return err
 	}
 
-	err = c.Set(context.Background(), fmt.Sprintf("%sworker:%s", workerSettings.Namespace, w.process), buffer, 0).Err()
+	err = c.Set(context.Background(), fmt.Sprintf("%sworker:%s", workerSettings.Namespace, w.process.String()), buffer, 0).Err()
 	if err != nil {
 		return err
 	}
