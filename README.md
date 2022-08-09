@@ -20,7 +20,8 @@ This is a fork of a [bennmans' library goworker](https://github.com/benmanns/gow
 - [xescugc](https://github.com/benmanns/goworker/pull/87) to add heartbeats
 - [clalimarmo](https://github.com/benmanns/goworker/pull/7) to enable cleanup of closure resources
 - my own changes to get rid of some warnings, mostly about unhandled errors from `logger.Criticalf`
-- [xescugs again #1](https://github.com/cycloidio/goworker/pull/4/files) - kudos to him for contacting me about these additional fixes
+- [xescugs again #1](https://github.com/cycloidio/goworker/pull/4) - kudos to him for contacting me about these additional fixes
+- [xescugs again #2](https://github.com/cycloidio/goworker/pull/8) to prune all workers not mentioned in a heartbeat list
 
 ## Installation
 

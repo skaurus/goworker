@@ -39,6 +39,7 @@ type WorkerSettings struct {
 	UseNumber      bool
 	SkipTLSVerify  bool
 	TLSCertPath    string
+	ForcePrune     bool
 }
 
 func SetSettings(settings WorkerSettings) {
@@ -155,14 +156,24 @@ func Work() error {
 	}
 
 	var monitor sync.WaitGroup
+	var wk *worker
 
 	for id := 0; id < workerSettings.Concurrency; id++ {
 		worker, err := newWorker(strconv.Itoa(id), workerSettings.queues)
 		if err != nil {
 			return err // it will be error only if os.Hostname() fails
 		}
+		if wk != nil {
+			wk = worker
+		}
 		worker.work(jobs, &monitor)
 	}
+
+	// Once all the workers have started we prune the dead ones
+	// this way we prevent from pruning workers that have just
+	// started and not registered to the Heartbeat in case
+	// of ForcePrune is enabled.
+	wk.pruneDeadWorkers(client)
 
 	monitor.Wait()
 
