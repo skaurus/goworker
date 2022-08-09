@@ -77,6 +77,14 @@
 // encoded in scientific notation, losing
 // pecision. This will default to true soon.
 //
+// -force-prune=false
+// — Will prune all workers that are not inside
+// of the heartbeat set, not just the expired ones.
+// This option is not compatible with older
+// versions of Resque (any port) as older versions
+// may not have heartbeat so this would delete
+// real working workers.
+//
 // You can also configure your own flags for use
 // within your workers. Be sure to set them
 // before calling goworker.Main(). It is okay to
@@ -126,6 +134,8 @@ func init() {
 	flag.BoolVar(&workerSettings.ExitOnComplete, "exit-on-complete", false, "exit when the queue is empty")
 
 	flag.BoolVar(&workerSettings.UseNumber, "use-number", true, "use json.Number instead of float64 when decoding numbers in JSON")
+
+	flag.BoolVar(&workerSettings.ForcePrune, "force-prune", false, "Forced the deletion of workers that are not present on the heartbeat set. WARNING: This is not compatible with older versions of Resque (any port) that do not have heartbeat as it'll then delete working workers.")
 
 	flag.BoolVar(&workerSettings.SkipTLSVerify, "insecure-tls", false, "skip TLS validation")
 }
