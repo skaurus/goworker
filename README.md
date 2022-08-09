@@ -22,8 +22,8 @@ This is a fork of a [bennmans' library goworker](https://github.com/benmanns/gow
 - my own changes to get rid of some warnings, mostly about unhandled errors from `logger.Criticalf`
 - [xescugs again #1](https://github.com/cycloidio/goworker/pull/4) - kudos to him for contacting me about these additional fixes
 - [xescugs again #2](https://github.com/cycloidio/goworker/pull/8) to prune all workers not mentioned in a heartbeat list
-- [here](https://github.com/skaurus/goworker/pull/17) I added an option to pass a ready Redis client to the lib. If it is not an go-redis v9 instance, you have no guarantees of this working as expected.
-- [and here](https://github.com/skaurus/goworker/pull/17) I added an option to pass a context.Context to the lib. By default it will create context.Background(). This context is used in all Redis methods.
+- [here](https://github.com/skaurus/goworker/pull/17) I added an option to pass a ready Redis client to the lib. If it is not a go-redis v9 instance, you have no guarantees that it will work as expected.
+- [and here](https://github.com/skaurus/goworker/pull/17) I added an option to pass a context.Context to the lib. By default it will create a new one via context.Background(). This context is used in all Redis calls.
 
 Also [this PR](https://github.com/cycloidio/goworker/pull/9) might be of interest for some, but I did not merged it.
 
