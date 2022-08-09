@@ -163,7 +163,7 @@ func Work() error {
 		if err != nil {
 			return err // it will be error only if os.Hostname() fails
 		}
-		if wk != nil {
+		if wk == nil {
 			wk = worker
 		}
 		worker.work(jobs, &monitor)
