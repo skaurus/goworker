@@ -144,9 +144,6 @@ func flags() error {
 	if !flag.Parsed() {
 		flag.Parse()
 	}
-	if err := workerSettings.queues.Set(workerSettings.QueuesString); err != nil {
-		return err
-	}
 	if err := workerSettings.interval.SetFloat(workerSettings.IntervalFloat); err != nil {
 		return err
 	}

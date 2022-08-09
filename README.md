@@ -139,11 +139,11 @@ func myFunc(queue string, args ...interface{}) error {
 func init() {
 	settings := goworker.WorkerSettings{
 		URI:            "redis://localhost:6379/",
-		// or you can pass that (it takes priority over URI and must be go-redis v9 client):
+		// or you can pass ready client instead of URI
+		// (it takes precedence over URI and must be go-redis v9 client)
 		Redis:          client,
 		Connections:    100,
-		// note that -queues flag is still required!
-		// the setting takes precedence though.
+		// this setting takes precedence over -queues flag
 		QueuesString:   "myqueue,delimited,queues",
 		ExitOnComplete: false,
 		Concurrency:    2,
@@ -225,7 +225,7 @@ goworker.Enqueue(&goworker.Job{
 
 There are several flags which control the operation of the goworker client.
 
-* `-queues="comma,delimited,queues"` — This is the only required flag. The recommended practice is to separate your Resque workers from your goworkers with different queues. Otherwise, Resque worker classes that have no goworker analog will cause the goworker process to fail the jobs. Because of this, there is no default queue, nor is there a way to select all queues (à la Resque's `*` queue). If you have multiple queues you can assign them weights. A queue with a weight of 2 will be checked twice as often as a queue with a weight of 1: `-queues='high=2,low=1'`.
+* `-queues="comma,delimited,queues"` — This is the only required flag (not if you set QueuesString setting though). The recommended practice is to separate your Resque workers from your goworkers with different queues. Otherwise, Resque worker classes that have no goworker analog will cause the goworker process to fail the jobs. Because of this, there is no default queue, nor is there a way to select all queues (à la Resque's `*` queue). If you have multiple queues you can assign them weights. A queue with a weight of 2 will be checked twice as often as a queue with a weight of 1: `-queues='high=2,low=1'`.
 * `-interval=5.0` — Specifies the wait period between polling in seconds if no job was in the queue the last time one was requested.
 * `-concurrency=25` — Specifies the number of concurrently executing workers. This number can be as low as 1 or rather comfortably as high as 100,000, and should be tuned to your workflow and the availability of outside resources.
 * `-connections=2` — Specifies the maximum number of Redis connections that goworker will consume between the poller and all workers. There is not much performance gain over two and a slight penalty when using only one. This is configurable in case you need to keep connection counts low for cloud Redis providers who limit plans on `maxclients`.
