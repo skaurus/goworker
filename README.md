@@ -23,6 +23,8 @@ This is a fork of a [bennmans' library goworker](https://github.com/benmanns/gow
 - [xescugs again #1](https://github.com/cycloidio/goworker/pull/4) - kudos to him for contacting me about these additional fixes
 - [xescugs again #2](https://github.com/cycloidio/goworker/pull/8) to prune all workers not mentioned in a heartbeat list
 
+Also [this PR](https://github.com/cycloidio/goworker/pull/9) might be of interest for some, but I did not merged it.
+
 ## Installation
 
 To install goworker, use
