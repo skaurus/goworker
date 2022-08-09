@@ -35,6 +35,7 @@ type WorkerSettings struct {
 	URI            string
 	Redis          *redis.Client
 	Namespace      string
+	Ctx            context.Context
 	ExitOnComplete bool
 	IsStrict       bool
 	UseNumber      bool
@@ -69,7 +70,12 @@ func Init() error {
 		if err := flags(); err != nil {
 			return err
 		}
-		ctx = context.Background()
+
+		if workerSettings.Ctx != nil {
+			ctx = workerSettings.Ctx
+		} else {
+			ctx = context.Background()
+		}
 
 		if workerSettings.Redis != nil {
 			// maybe we want to do `*client = *workerSettings.Redis` instead?

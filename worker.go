@@ -1,7 +1,6 @@
 package goworker
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -52,7 +51,7 @@ func (w *worker) start(c *redis.Client, job *Job) error {
 		return err
 	}
 
-	err = c.Set(context.Background(), fmt.Sprintf("%sworker:%s", workerSettings.Namespace, w.process.String()), buffer, 0).Err()
+	err = c.Set(ctx, fmt.Sprintf("%sworker:%s", workerSettings.Namespace, w.process.String()), buffer, 0).Err()
 	if err != nil {
 		return err
 	}
@@ -67,7 +66,7 @@ func (w *worker) startHeartbeat(c *redis.Client) {
 		for {
 			select {
 			case <-w.heartbeatTicker.C:
-				err := c.HSet(context.Background(), fmt.Sprintf("%s%s", workerSettings.Namespace, heartbeatKey), w.process.String(), time.Now().Format(time.RFC3339)).Err()
+				err := c.HSet(ctx, fmt.Sprintf("%s%s", workerSettings.Namespace, heartbeatKey), w.process.String(), time.Now().Format(time.RFC3339)).Err()
 				if err != nil {
 					_ = logger.Errorf("Error on worker heartbeat %v: %v", w, err)
 				}
@@ -78,7 +77,7 @@ func (w *worker) startHeartbeat(c *redis.Client) {
 
 func (w *worker) pruneDeadWorkers(c *redis.Client) {
 	// Block with set+nx+ex
-	ok, err := c.SetNX(context.Background(), fmt.Sprintf("%s%s", workerSettings.Namespace, keyForWorkersPruning), w.String(), heartbeatInterval.Truncate(time.Second)).Result()
+	ok, err := c.SetNX(ctx, fmt.Sprintf("%s%s", workerSettings.Namespace, keyForWorkersPruning), w.String(), heartbeatInterval.Truncate(time.Second)).Result()
 	if err != nil {
 		_ = logger.Criticalf("Error on setting lock to prune workers: %v", err)
 		return
@@ -88,14 +87,14 @@ func (w *worker) pruneDeadWorkers(c *redis.Client) {
 		return
 	}
 	// Get all workers
-	workers, err := c.SMembers(context.Background(), fmt.Sprintf("%sworkers", workerSettings.Namespace)).Result()
+	workers, err := c.SMembers(ctx, fmt.Sprintf("%sworkers", workerSettings.Namespace)).Result()
 	if err != nil {
 		_ = logger.Criticalf("Error on getting list of all workers: %v", err)
 		return
 	}
 
 	// Get all workers that have sent a heartbeat and now is expired
-	heartbeatWorkers, err := c.HGetAll(context.Background(), fmt.Sprintf("%s%s", workerSettings.Namespace, heartbeatKey)).Result()
+	heartbeatWorkers, err := c.HGetAll(ctx, fmt.Sprintf("%s%s", workerSettings.Namespace, heartbeatKey)).Result()
 	if err != nil {
 		_ = logger.Criticalf("Error on getting list of all workers with heartbeat: %v", err)
 		return
@@ -139,7 +138,7 @@ func (w *worker) pruneDeadWorkers(c *redis.Client) {
 				Queues:   strings.Split(parts[2], ","),
 			}
 
-			works, err := c.Get(context.Background(), fmt.Sprintf("%sworker:%s", workerSettings.Namespace, wp.String())).Result()
+			works, err := c.Get(ctx, fmt.Sprintf("%sworker:%s", workerSettings.Namespace, wp.String())).Result()
 			if err != nil && err != redis.Nil {
 				_ = logger.Criticalf("Error on getting worker for pruning: %v", err)
 				return
@@ -188,7 +187,7 @@ func (w *worker) fail(c *redis.Client, job *Job, err error) error {
 		return err
 	}
 
-	err = c.RPush(context.Background(), fmt.Sprintf("%sfailed", workerSettings.Namespace), buffer).Err()
+	err = c.RPush(ctx, fmt.Sprintf("%sfailed", workerSettings.Namespace), buffer).Err()
 	if err != nil {
 		return err
 	}
@@ -197,12 +196,12 @@ func (w *worker) fail(c *redis.Client, job *Job, err error) error {
 }
 
 func (w *worker) succeed(c *redis.Client) error {
-	err := c.Incr(context.Background(), fmt.Sprintf("%sstat:processed", workerSettings.Namespace)).Err()
+	err := c.Incr(ctx, fmt.Sprintf("%sstat:processed", workerSettings.Namespace)).Err()
 	if err != nil {
 		return err
 	}
 
-	err = c.Incr(context.Background(), fmt.Sprintf("%sstat:processed:%s", workerSettings.Namespace, w)).Err()
+	err = c.Incr(ctx, fmt.Sprintf("%sstat:processed:%s", workerSettings.Namespace, w)).Err()
 	if err != nil {
 		return err
 	}
