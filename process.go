@@ -1,7 +1,6 @@
 package goworker
 
 import (
-	"context"
 	"fmt"
 	"math/rand"
 	"os"
@@ -37,23 +36,23 @@ func (p *process) String() string {
 }
 
 func (p *process) open(c *redis.Client) error {
-	err := c.SAdd(context.Background(), fmt.Sprintf("%sworkers", workerSettings.Namespace), p.String()).Err()
+	err := c.SAdd(ctx, fmt.Sprintf("%sworkers", workerSettings.Namespace), p.String()).Err()
 	if err != nil {
 		return err
 	}
 
-	err = c.Set(context.Background(), fmt.Sprintf("%sstat:processed:%v", workerSettings.Namespace, p), "0", 0).Err()
+	err = c.Set(ctx, fmt.Sprintf("%sstat:processed:%v", workerSettings.Namespace, p), "0", 0).Err()
 	if err != nil {
 		return err
 	}
 
-	err = c.Set(context.Background(), fmt.Sprintf("%sstat:failed:%v", workerSettings.Namespace, p), "0", 0).Err()
+	err = c.Set(ctx, fmt.Sprintf("%sstat:failed:%v", workerSettings.Namespace, p), "0", 0).Err()
 	if err != nil {
 		return err
 	}
 
 	// We set the heartbeat as the first thing
-	err = c.HSet(context.Background(), fmt.Sprintf("%s%s", workerSettings.Namespace, heartbeatKey), p.String(), time.Now().Format(time.RFC3339)).Err()
+	err = c.HSet(ctx, fmt.Sprintf("%s%s", workerSettings.Namespace, heartbeatKey), p.String(), time.Now().Format(time.RFC3339)).Err()
 	if err != nil {
 		return err
 	}
@@ -63,22 +62,22 @@ func (p *process) open(c *redis.Client) error {
 
 func (p *process) close(c *redis.Client) error {
 	logger.Infof("%v shutdown", p)
-	err := c.SRem(context.Background(), fmt.Sprintf("%sworkers", workerSettings.Namespace), p.String()).Err()
+	err := c.SRem(ctx, fmt.Sprintf("%sworkers", workerSettings.Namespace), p.String()).Err()
 	if err != nil {
 		return err
 	}
 
-	err = c.Del(context.Background(), fmt.Sprintf("%sstat:processed:%s", workerSettings.Namespace, p)).Err()
+	err = c.Del(ctx, fmt.Sprintf("%sstat:processed:%s", workerSettings.Namespace, p)).Err()
 	if err != nil {
 		return err
 	}
 
-	err = c.Del(context.Background(), fmt.Sprintf("%sstat:failed:%s", workerSettings.Namespace, p)).Err()
+	err = c.Del(ctx, fmt.Sprintf("%sstat:failed:%s", workerSettings.Namespace, p)).Err()
 	if err != nil {
 		return err
 	}
 
-	err = c.HDel(context.Background(), fmt.Sprintf("%s%s", workerSettings.Namespace, heartbeatKey), p.String()).Err()
+	err = c.HDel(ctx, fmt.Sprintf("%s%s", workerSettings.Namespace, heartbeatKey), p.String()).Err()
 	if err != nil {
 		return err
 	}
@@ -87,7 +86,7 @@ func (p *process) close(c *redis.Client) error {
 }
 
 func (p *process) start(c *redis.Client) error {
-	err := c.Set(context.Background(), fmt.Sprintf("%sworker:%s:started", workerSettings.Namespace, p), time.Now().String(), 0).Err()
+	err := c.Set(ctx, fmt.Sprintf("%sworker:%s:started", workerSettings.Namespace, p), time.Now().String(), 0).Err()
 	if err != nil {
 		return err
 	}
@@ -96,12 +95,12 @@ func (p *process) start(c *redis.Client) error {
 }
 
 func (p *process) finish(c *redis.Client) error {
-	err := c.Del(context.Background(), fmt.Sprintf("%sworker:%s", workerSettings.Namespace, p)).Err()
+	err := c.Del(ctx, fmt.Sprintf("%sworker:%s", workerSettings.Namespace, p)).Err()
 	if err != nil {
 		return err
 	}
 
-	err = c.Del(context.Background(), fmt.Sprintf("%sworker:%s:started", workerSettings.Namespace, p)).Err()
+	err = c.Del(ctx, fmt.Sprintf("%sworker:%s:started", workerSettings.Namespace, p)).Err()
 	if err != nil {
 		return err
 	}
@@ -110,12 +109,12 @@ func (p *process) finish(c *redis.Client) error {
 }
 
 func (p *process) fail(c *redis.Client) error {
-	err := c.Incr(context.Background(), fmt.Sprintf("%sstat:failed", workerSettings.Namespace)).Err()
+	err := c.Incr(ctx, fmt.Sprintf("%sstat:failed", workerSettings.Namespace)).Err()
 	if err != nil {
 		return err
 	}
 
-	err = c.Incr(context.Background(), fmt.Sprintf("%sstat:failed:%s", workerSettings.Namespace, p)).Err()
+	err = c.Incr(ctx, fmt.Sprintf("%sstat:failed:%s", workerSettings.Namespace, p)).Err()
 	if err != nil {
 		return err
 	}
