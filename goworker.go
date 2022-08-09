@@ -70,6 +70,12 @@ func Init() error {
 		if err := flags(); err != nil {
 			return err
 		}
+		// I moved it outside flags.go so it would work _after_ potential
+		// SetSettings call; making this flag not required as far as
+		// workerSettings.QueuesString is set to something.
+		if err := workerSettings.queues.Set(workerSettings.QueuesString); err != nil {
+			return err
+		}
 
 		if workerSettings.Ctx != nil {
 			ctx = workerSettings.Ctx
