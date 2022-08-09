@@ -33,6 +33,7 @@ type WorkerSettings struct {
 	Concurrency    int
 	Connections    int
 	URI            string
+	Redis          *redis.Client
 	Namespace      string
 	ExitOnComplete bool
 	IsStrict       bool
@@ -70,23 +71,30 @@ func Init() error {
 		}
 		ctx = context.Background()
 
-		opts, err := redis.ParseURL(workerSettings.URI)
-		if err != nil {
-			return err
-		}
-
-		if len(workerSettings.TLSCertPath) > 0 {
-			certPool, err := getCertPool()
+		if workerSettings.Redis != nil {
+			// maybe we want to do `*client = *workerSettings.Redis` instead?
+			// because right now user of this library can manipulate our `client`
+			client = workerSettings.Redis
+		} else {
+			opts, err := redis.ParseURL(workerSettings.URI)
 			if err != nil {
 				return err
 			}
-			opts.TLSConfig = &tls.Config{
-				RootCAs:            certPool,
-				InsecureSkipVerify: workerSettings.SkipTLSVerify,
+
+			if len(workerSettings.TLSCertPath) > 0 {
+				certPool, err := getCertPool()
+				if err != nil {
+					return err
+				}
+				opts.TLSConfig = &tls.Config{
+					RootCAs:            certPool,
+					InsecureSkipVerify: workerSettings.SkipTLSVerify,
+				}
 			}
+
+			client = redis.NewClient(opts)
 		}
 
-		client = redis.NewClient(opts)
 		err = client.Ping(ctx).Err()
 		if err != nil {
 			return err
