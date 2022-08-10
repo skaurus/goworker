@@ -26,11 +26,11 @@ func newPoller(queues []string, isStrict bool) (*poller, error) {
 	}, nil
 }
 
-func (p *poller) getJob(c *redis.Client) (*Job, error) {
+func (p *poller) getJob(c *redis.Client, interval time.Duration) (*Job, error) {
 	for _, queue := range p.queues(p.isStrict) {
 		logger.Debugf("Checking %s", queue)
 
-		result, err := c.LPop(ctx, fmt.Sprintf("%squeue:%s", workerSettings.Namespace, queue)).Result()
+		results, err := c.BLPop(ctx, interval, fmt.Sprintf("%squeue:%s", workerSettings.Namespace, queue)).Result()
 		if err != nil {
 			// no jobs for now, continue on another queue
 			if err == redis.Nil {
@@ -38,6 +38,7 @@ func (p *poller) getJob(c *redis.Client) (*Job, error) {
 			}
 			return nil, err
 		}
+		result := results[0]
 		if result != "" {
 			logger.Debugf("Found job on %s", queue)
 
@@ -94,7 +95,7 @@ func (p *poller) poll(interval time.Duration, quit <-chan bool) (<-chan *Job, er
 			case <-quit:
 				return
 			default:
-				job, err := p.getJob(client)
+				job, err := p.getJob(client, interval)
 				if err != nil {
 					err = errors.WithStack(err)
 					_ = logger.Criticalf("Error on %v getting job from %v: %+v", p, p.Queues, err)
@@ -127,19 +128,8 @@ func (p *poller) poll(interval time.Duration, quit <-chan bool) (<-chan *Job, er
 
 						return
 					}
-				} else {
-					if workerSettings.ExitOnComplete {
-						return
-					}
-					logger.Debugf("Sleeping for %v", interval)
-					logger.Debugf("Waiting for %v", p.Queues)
-
-					timeout := time.After(interval)
-					select {
-					case <-quit:
-						return
-					case <-timeout:
-					}
+				} else if workerSettings.ExitOnComplete {
+					return
 				}
 			}
 		}

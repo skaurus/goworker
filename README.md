@@ -148,6 +148,7 @@ func init() {
 		ExitOnComplete: false,
 		Concurrency:    2,
 		Namespace:      "resque:",
+		// timeout for BLPOP in seconds
 		IntervalFloat:  5.0,
 	}
 	goworker.SetSettings(settings)
