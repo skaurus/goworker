@@ -71,7 +71,7 @@ func Init() error {
 			return err
 		}
 		// I moved it outside flags.go so it would work _after_ potential
-		// SetSettings call; making this flag not required as far as
+		// SetSettings call; making this flag not required as long as
 		// workerSettings.QueuesString is set to something.
 		if err := workerSettings.queues.Set(workerSettings.QueuesString); err != nil {
 			return err
