@@ -86,9 +86,9 @@ func TestEnqueue(t *testing.T) {
 		t.Errorf("(Enqueue) Failed on work %s", err)
 	}
 	if !reflect.DeepEqual(actualArgs, expectedArgs) {
-		t.Errorf("(Enqueue) Expected %v, actual %v", actualArgs, expectedArgs)
+		t.Errorf("(Enqueue) Expected %v, actual %v", expectedArgs, actualArgs)
 	}
 	if !reflect.DeepEqual(actualQueueName, queueName) {
-		t.Errorf("(Enqueue) Expected %v, actual %v", actualQueueName, queueName)
+		t.Errorf("(Enqueue) Expected %v, actual %v", queueName, actualQueueName)
 	}
 }
