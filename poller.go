@@ -10,6 +10,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+var (
+	errorUnexpectedJob = errors.New("code expects exactly two items - queue name and task json")
+)
+
 type poller struct {
 	process
 	isStrict bool
@@ -38,13 +42,17 @@ func (p *poller) getJob(c *redis.Client, interval time.Duration) (*Job, error) {
 			}
 			return nil, err
 		}
-		result := results[0]
-		if result != "" {
+		if len(results) > 0 {
+			if len(results) != 2 {
+				return nil, errorUnexpectedJob
+			}
+			// at 0 index we have a queue name
+			task := results[1]
 			logger.Debugf("Found job on %s", queue)
 
 			job := &Job{Queue: queue}
 
-			decoder := json.NewDecoder(bytes.NewReader([]byte(result)))
+			decoder := json.NewDecoder(bytes.NewReader([]byte(task)))
 			if workerSettings.UseNumber {
 				decoder.UseNumber()
 			}
