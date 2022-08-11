@@ -173,7 +173,7 @@ func (w *worker) pruneDeadWorkers(c *redis.Client) {
 }
 
 func (w *worker) fail(c *redis.Client, job *Job, err error) error {
-	_ = logger.Errorf("job failed with %+v; payload was\n%s", err, job.Payload)
+	_ = logger.Errorf("job failed with %+v;\npayload was %s\n", err, job.Payload)
 
 	failure := &failure{
 		FailedAt:  time.Now(),
