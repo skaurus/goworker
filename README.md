@@ -25,6 +25,7 @@ This is a fork of a [bennmans' library goworker](https://github.com/benmanns/gow
 - [here](https://github.com/skaurus/goworker/pull/17) I added an option to pass a ready Redis client to the lib. If it is not a go-redis v9 instance, you have no guarantees that it will work as expected.
 - [and here](https://github.com/skaurus/goworker/pull/17) I added an option to pass a context.Context to the lib. By default it will create a new one via context.Background(). This context is used in all Redis calls.
 - [and here](https://github.com/skaurus/goworker/pull/20) I replaced LPOP + sleep with a BLPOP
+- [and here](https://github.com/skaurus/goworker/pull/21) I started logging worker errors to log
 
 Also [this PR](https://github.com/cycloidio/goworker/pull/9) might be of interest for some, but I did not merge it.
 
