@@ -195,6 +195,56 @@ func myFunc(queue, args ...interface{}) error {
 }
 ```
 
+Sometimes Go assertions are not enough - for example, when one of arguments is a custom `struct` type, it will end up in goworker as `map[string]interface{}`, and casting it back to `struct` does not work (`interface {} is map[string]interface {}, not customType`).  
+In this case you can register custom decoder:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/skaurus/goworker"
+)
+
+func customDecoder(job string) (class string, args interface{}, err error) {
+	payload := struct {
+		Class string
+		Args  []customType
+	}{}
+	err = json.Unmarshal([]byte(job), &payload)
+	return payload.Class, payload.Args, err
+}
+
+func myFunc(queue string, args ...interface{}) error {
+	fmt.Printf("From %s, %v\n", queue, args)
+	customTypes := make([]customType, 0, len(args))
+    for _, task := range args {
+        event, ok := task.(customType)
+        if !ok {
+            continue
+        }
+		customTypes = append(customTypes, event)
+    }
+	fmt.Printf("From %s => %v\n", queue, customTypes)
+	return nil
+}
+
+func init() {
+	goworker.RegisterDecoder(customDecoder)
+	goworker.Register("MyClass", myFunc)
+}
+
+func main() {
+	if err := goworker.Work(); err != nil {
+		fmt.Println("Error:", err)
+	}
+}
+```
+
+There is some reflection involved when custom decoder is used, but I found no way around it. Well, one alternative solution is just marshal args back to JSON and unmarshal them to custom type, but I consider this ugly. But if you prefer, it could be done right in your registered function, with no need for custom decoder.
+
 For testing, it is helpful to use the `redis-cli` program to insert jobs onto the Redis queue:
 
 ```sh
