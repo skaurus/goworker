@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	workers map[string]workerFunc
+	workers       map[string]workerFunc
+	customDecoder decoderFunc
 )
 
 func init() {
@@ -19,6 +20,10 @@ func init() {
 // arbitrary array of interfaces as arguments.
 func Register(class string, worker workerFunc) {
 	workers[class] = worker
+}
+
+func RegisterDecoder(decoder func(job string) (class string, args []interface{}, err error)) {
+	customDecoder = decoder
 }
 
 func Enqueue(job *Job) error {
