@@ -52,14 +52,25 @@ func (p *poller) getJob(c *redis.Client, interval time.Duration) (*Job, error) {
 
 			job := &Job{Queue: queue}
 
-			decoder := json.NewDecoder(bytes.NewReader([]byte(task)))
-			if workerSettings.UseNumber {
-				decoder.UseNumber()
+			if customDecoder == nil {
+				decoder := json.NewDecoder(bytes.NewReader([]byte(task)))
+				if workerSettings.UseNumber {
+					decoder.UseNumber()
+				}
+
+				if err := decoder.Decode(&job.Payload); err != nil {
+					return nil, err
+				}
+			} else {
+				class, args, err := customDecoder(task)
+				if err != nil {
+					return nil, err
+				}
+
+				job.Payload.Class = class
+				job.Payload.Args = args
 			}
 
-			if err := decoder.Decode(&job.Payload); err != nil {
-				return nil, err
-			}
 			return job, nil
 		}
 	}

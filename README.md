@@ -26,6 +26,7 @@ This is a fork of a [bennmans' library goworker](https://github.com/benmanns/gow
 - [and here](https://github.com/skaurus/goworker/pull/17) I added an option to pass a context.Context to the lib. By default it will create a new one via context.Background(). This context is used in all Redis calls.
 - [and here](https://github.com/skaurus/goworker/pull/20) I replaced LPOP + sleep with a BLPOP
 - [and here](https://github.com/skaurus/goworker/pull/21) I started logging worker errors to log
+- [and here](https://github.com/skaurus/goworker/pull/22) I added a RegisterDecoder method, so that your custom types, which were encoded to JSON as payload args, could be decoded to same custom types instead of generic `map[string]interface{}`
 
 Also [this PR](https://github.com/cycloidio/goworker/pull/9) might be of interest for some, but I did not merge it.
 
