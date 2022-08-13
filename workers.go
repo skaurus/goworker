@@ -22,7 +22,7 @@ func Register(class string, worker workerFunc) {
 	workers[class] = worker
 }
 
-func RegisterDecoder(decoder func(job string) (class string, args []interface{}, err error)) {
+func RegisterDecoder(decoder decoderFunc) {
 	customDecoder = decoder
 }
 

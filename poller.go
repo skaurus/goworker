@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/go-redis/redis/v9"
@@ -11,7 +12,8 @@ import (
 )
 
 var (
-	errorUnexpectedJob = errors.New("code expects exactly two items - queue name and task json")
+	errorUnexpectedJob          = errors.New("code expects exactly two items - queue name and task json")
+	errorCustomArgsAreNotASlice = errors.New("args from custom decoder must be a slice")
 )
 
 type poller struct {
@@ -68,7 +70,18 @@ func (p *poller) getJob(c *redis.Client, interval time.Duration) (*Job, error) {
 				}
 
 				job.Payload.Class = class
-				job.Payload.Args = args
+
+				val := reflect.ValueOf(args)
+				if val.Kind() != reflect.Slice {
+					return nil, errorCustomArgsAreNotASlice
+				}
+
+				sliceLen := val.Len()
+				Args := make([]interface{}, sliceLen)
+				for i := 0; i < sliceLen; i++ {
+					Args[i] = val.Index(i).Interface()
+				}
+				job.Payload.Args = Args
 			}
 
 			return job, nil
