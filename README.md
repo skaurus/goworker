@@ -26,7 +26,7 @@ This is a fork of a [bennmans' library goworker](https://github.com/benmanns/gow
 - [and here](https://github.com/skaurus/goworker/pull/17) I added an option to pass a context.Context to the lib. By default it will create a new one via context.Background(). This context is used in all Redis calls.
 - [and here](https://github.com/skaurus/goworker/pull/20) I replaced LPOP + sleep with a BLPOP
 - [and here](https://github.com/skaurus/goworker/pull/21) I started logging worker errors to log
-- [and here](https://github.com/skaurus/goworker/pull/22) I added a RegisterDecoder method, so that your custom types, which were encoded to JSON as payload args, could be decoded to same custom types instead of generic `map[string]interface{}`
+- [and here](https://github.com/skaurus/goworker/pull/22) plus [here](https://github.com/skaurus/goworker/pull/23) I added a RegisterDecoder method, so that your custom types, which were encoded to JSON as payload args, could be decoded to same custom types instead of generic `map[string]interface{}`
 
 Also [this PR](https://github.com/cycloidio/goworker/pull/9) might be of interest for some, but I did not merge it.
 
@@ -218,15 +218,14 @@ func customDecoder(job string) (class string, args interface{}, err error) {
 }
 
 func myFunc(queue string, args ...interface{}) error {
-	fmt.Printf("From %s, %v\n", queue, args)
 	customTypes := make([]customType, 0, len(args))
-    for _, task := range args {
-        event, ok := task.(customType)
-        if !ok {
-            continue
-        }
-		customTypes = append(customTypes, event)
-    }
+	for _, task := range args {
+		customTypeInstance, ok := task.(customType)
+		if !ok {
+			continue
+		}
+		customTypes = append(customTypes, customTypeInstance)
+	}
 	fmt.Printf("From %s => %v\n", queue, customTypes)
 	return nil
 }
@@ -244,6 +243,93 @@ func main() {
 ```
 
 There is some reflection involved when custom decoder is used, but I found no way around it. Well, one alternative solution is just marshal args back to JSON and unmarshal them to custom type, but I consider this ugly. But if you prefer, it could be done right in your registered function, with no need for custom decoder.
+
+Also, here is example with custom decoder supporting working on different custom types which all support the same interface. I hijack a `class` field from payload to distinguish who is who:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"reflect"
+
+	"github.com/skaurus/goworker"
+)
+
+type Foo string
+type Bar string
+type customInterface interface {
+	say() string
+}
+
+func (f Foo) say() string {
+	return string(f)
+}
+
+func (b Bar) say() string {
+	return string(b)
+}
+
+var typeDispatcher = map[string]reflect.Type{
+	"foo": reflect.TypeOf([]Foo{}),
+	"bar": reflect.TypeOf([]Bar{}),
+}
+
+var ErrUnknownPayloadType = errors.New("unknown payload type")
+
+func customDecoder(job string) (class string, args interface{}, err error) {
+	payload := struct {
+		Class string
+		Args  json.RawMessage
+	}{}
+	err = json.Unmarshal([]byte(job), &payload)
+	if err != nil {
+		return
+    }
+	class = payload.Class
+
+	typ, ok := typeDispatcher[class]
+	if !ok {
+		err = fmt.Errorf("%w: %s", ErrUnknownPayloadType, class)
+		return
+	}
+	args = reflect.New(typ).Interface()
+	err = json.Unmarshal(payload.Args, args)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func myFunc(queue string, args ...interface{}) error {
+	customTypes := make([]customInterface, 0, len(args))
+	for _, task := range args {
+		customTypeInstance, ok := task.(customInterface)
+		if !ok {
+			continue
+		}
+		customTypes = append(customTypes, customTypeInstance)
+	}
+	fmt.Printf("From %s => %v\n", queue, customTypes)
+	return nil
+}
+
+func init() {
+	goworker.RegisterDecoder(customDecoder)
+	for class := range typeDispatcher {
+		goworker.Register(class, myFunc)
+	}
+}
+
+func main() {
+	if err := goworker.Work(); err != nil {
+		fmt.Println("Error:", err)
+	}
+}
+```
 
 For testing, it is helpful to use the `redis-cli` program to insert jobs onto the Redis queue:
 
