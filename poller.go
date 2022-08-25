@@ -71,6 +71,8 @@ func (p *poller) getJob(c *redis.Client, interval time.Duration) (*Job, error) {
 
 				job.Payload.Class = class
 
+				// customDecoder has to have a fixed signature, so args are of
+				// type interface{}; here we make it a slice of interfaces
 				val := reflect.ValueOf(args)
 				if val.Kind() != reflect.Slice {
 					return nil, errorCustomArgsAreNotASlice
