@@ -42,6 +42,7 @@ type WorkerSettings struct {
 	SkipTLSVerify  bool
 	TLSCertPath    string
 	ForcePrune     bool
+	Logger         seelog.LoggerInterface
 }
 
 func SetSettings(settings WorkerSettings) {
@@ -62,9 +63,13 @@ func Init() error {
 	defer initMutex.Unlock()
 	if !initialized {
 		var err error
-		logger, err = seelog.LoggerFromWriterWithMinLevel(os.Stdout, seelog.InfoLvl)
-		if err != nil {
-			return err
+		if workerSettings.Logger != nil {
+			logger = workerSettings.Logger
+		} else {
+			logger, err = seelog.LoggerFromWriterWithMinLevel(os.Stdout, seelog.InfoLvl)
+			if err != nil {
+				return err
+			}
 		}
 
 		if err := flags(); err != nil {
